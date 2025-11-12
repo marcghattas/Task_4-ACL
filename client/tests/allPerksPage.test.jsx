@@ -5,8 +5,6 @@ import AllPerks from '../src/pages/AllPerks.jsx';
 import { renderWithRouter } from './utils/renderWithRouter.js';
 
 
-  
-
 describe('AllPerks page (Directory)', () => {
   test('lists public perks and responds to name filtering', async () => {
     // The seeded record gives us a deterministic expectation regardless of the
@@ -51,7 +49,34 @@ describe('AllPerks page (Directory)', () => {
   */
 
   test('lists public perks and responds to merchant filtering', async () => {
-    // This will always fail until the TODO above is implemented.
-    expect(true).toBe(false);
+
+    const seededPerk = global.__TEST_CONTEXT__.seededPerk;
+
+    renderWithRouter(
+      <Routes>
+        <Route path="/explore" element={<AllPerks />} />
+      </Routes>,
+      { initialEntries: ['/explore'] }
+    );
+
+    // wait for initial fetch to complete and seeded card to appear
+    await waitFor(() => {
+      expect(screen.getByText(seededPerk.title)).toBeInTheDocument();
+    });
+
+    // 🏆 FIX: Find the merchant dropdown (role='combobox') by its accessible name. 
+    // The label text "Filter by Merchant" serves as its name.
+    const merchantSelect = screen.getByRole('combobox');
+
+    // change to the seeded perk's merchant
+    fireEvent.change(merchantSelect, { target: { value: seededPerk.merchant } });
+
+    // wait for UI to reflect the filtered results
+    await waitFor(() => {
+      expect(screen.getByText(seededPerk.title)).toBeInTheDocument();
+    });
+
+    // summary should still indicate the count label
+    expect(screen.getByText(/showing/i)).toHaveTextContent('Showing');
   });
 });
